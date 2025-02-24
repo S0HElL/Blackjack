@@ -26,7 +26,7 @@
                         <img src="/static/assets/images/{{ image }}" alt="Card" class="card">
                     {% endfor %}
                 </div>
-                <p>Score: {{ session['computer_score'] }}</p>
+                <p>Score: {% if session['game_over'] %}{{ session['computer_score'] }}{% else %}?{% endif %}</p>
             </div>
             {% if session['game_over'] %}
                 <div class="message">

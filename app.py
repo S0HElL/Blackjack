@@ -75,7 +75,12 @@ def index():
 
     # Convert card names to image paths
     player_images = [card_to_image(card) for card in session['player_hand']]
-    computer_images = [card_to_image(card) for card in session['computer_hand']]
+    
+    # Only show the first card of the computer's hand initially
+    if session['game_over']:
+        computer_images = [card_to_image(card) for card in session['computer_hand']]
+    else:
+        computer_images = [card_to_image(session['computer_hand'][0]), "back.jpg"]
 
     return render_template('index.html', player_images=player_images, computer_images=computer_images)
 
