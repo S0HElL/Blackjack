@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Game</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Blackjack Game</h1>
+        <div class="game">
+            <div class="hand">
+                <h2>Player's Hand</h2>
+                <div class="cards">
+                    {% for image in player_images %}
+                        <img src="/static/assets/images/{{ image }}" alt="Card" class="card">
+                    {% endfor %}
+                </div>
+                <p>Score: {{ session['player_score'] }}</p>
+            </div>
+            <div class="hand">
+                <h2>Computer's Hand</h2>
+                <div class="cards">
+                    {% for image in computer_images %}
+                        <img src="/static/assets/images/{{ image }}" alt="Card" class="card">
+                    {% endfor %}
+                </div>
+                <p>Score: {{ session['computer_score'] }}</p>
+            </div>
+            {% if session['game_over'] %}
+                <div class="message">
+                    <p>{{ session['message'] }}</p>
+                    <form action="/reset" method="post">
+                        <button type="submit">Play Again</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="actions">
+                    <form action="/hit" method="post">
+                        <button type="submit">Hit</button>
+                    </form>
+                    <form action="/stand" method="post">
+                        <button type="submit">Stand</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
