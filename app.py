@@ -103,16 +103,19 @@ def hit():
 @app.route('/stand', methods=['POST'])
 def stand():
     if not session['game_over']:
+        # Computer draws one card at a time until its score is at least 17
         while session['computer_score'] < 17:
             session['computer_hand'].append(random.choice(session['deck']))
             session['deck'].remove(session['computer_hand'][-1])
             session['computer_score'] = evaluate_hand(session['computer_hand'])
 
+            # Check if computer busts after drawing a card
             if session['computer_score'] > 21:
                 session['game_over'] = True
                 session['message'] = "Computer busted! Player wins!"
                 break
 
+        # If the computer didn't bust, determine the winner
         if not session['game_over']:
             if session['player_score'] > session['computer_score']:
                 session['message'] = "Player wins!"
