@@ -12,9 +12,10 @@ body {
 .container {
     text-align: center;
     background-color: #262626;
+    font-family:Playfair Display;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 10px rgb(255, 0, 0);
 }
 
 h1 {
@@ -62,7 +63,7 @@ button {
 }
 
 button:hover {
-    background-color: #ff0040;
+    background-color: #ff6f00;
 }
 
 .message {

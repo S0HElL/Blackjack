@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blackjack Game</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="/static/assets/images/logo.png">
 </head>
 <body>
     <div class="container">
-        <h1>Blackjack Game</h1>
+        <h1><b>BLACKJACK</b></h1>
         <div class="game">
             <div class="hand">
-                <h2>Player's Hand</h2>
+                <h2>Your Hand</h2>
                 <div class="cards">
                     {% for image in player_images %}
                         <img src="/static/assets/images/{{ image }}" alt="Card" class="card">

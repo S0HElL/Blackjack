@@ -68,7 +68,7 @@ def index():
         # Check for natural blackjack
         if session['player_score'] == 21:
             session['game_over'] = True
-            session['message'] = "Player has a natural Blackjack! Player wins!"
+            session['message'] = "Player has a natural Blackjack! You win!"
         elif session['computer_score'] == 21:
             session['game_over'] = True
             session['message'] = "Computer has a natural Blackjack! Computer wins!"
@@ -96,7 +96,7 @@ def hit():
             session['message'] = "You busted! Computer wins."
         elif session['player_score'] == 21:
             session['game_over'] = True
-            session['message'] = "Player got 21! Player wins!"
+            session['message'] = "You got 21! You win!"
 
     return redirect(url_for('index'))
 
@@ -111,7 +111,7 @@ def stand():
         # Check if computer busts after drawing a card
         if session['computer_score'] > 21:
             session['game_over'] = True
-            session['message'] = "Computer busted! Player wins!"
+            session['message'] = "Computer busted! You win!"
         else:
             # If computer's score is less than 17, it will draw again in the next stand
             if session['computer_score'] < 17:
@@ -120,7 +120,7 @@ def stand():
                 # If computer's score is 17 or higher, it stands
                 session['game_over'] = True
                 if session['player_score'] > session['computer_score']:
-                    session['message'] = "Player wins!"
+                    session['message'] = "You win!"
                 elif session['player_score'] < session['computer_score']:
                     session['message'] = "Computer wins!"
                 else:
