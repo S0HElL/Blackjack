@@ -14,8 +14,11 @@
             <div class="hand">
                 <h2>Your Hand</h2>
                 <div class="cards">
-                    {% for image in player_images %}
-                        <img src="/static/assets/images/{{ image }}" alt="Card" class="card">
+                    {% for card in player_cards %}
+                        <div class="card-wrapper">
+                            <img src="/static/assets/images/{{ card.image }}" alt="Card" class="card">
+                            <p class="card-label">{{ card.display }}</p>
+                        </div>
                     {% endfor %}
                 </div>
                 <p>Score: {{ session['player_score'] }}</p>
@@ -23,8 +26,11 @@
             <div class="hand">
                 <h2>Computer's Hand</h2>
                 <div class="cards">
-                    {% for image in computer_images %}
-                        <img src="/static/assets/images/{{ image }}" alt="Card" class="card">
+                    {% for card in computer_cards %}
+                        <div class="card-wrapper">
+                            <img src="/static/assets/images/{{ card.image }}" alt="Card" class="card">
+                            <p class="card-label">{{ card.display }}</p>
+                        </div>
                     {% endfor %}
                 </div>
                 <p>Score: {% if session['game_over'] %}{{ session['computer_score'] }}{% else %}?{% endif %}</p>

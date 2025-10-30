@@ -32,7 +32,7 @@ def evaluate_hand(hand):
     return hand_value
 
 def card_to_image(card):
-    """Converts a card name (e.g., '5 of Diamonds') to an image filename (e.g., 'd5.jpg')."""
+    """Converts a card name (e.g., '5 of Diamonds') to an image filename (e.g., 'd5.png')."""
     rank, suit = card.split(' of ')
     suit_map = {'Spades': 's', 'Clubs': 'c', 'Hearts': 'h', 'Diamonds': 'd'}
     rank_map = {'A': 'a', 'J': 'j', 'Q': 'q', 'K': 'k'}
@@ -43,7 +43,14 @@ def card_to_image(card):
     # Convert suit to lowercase and map to single letter
     suit = suit_map.get(suit, suit[0].lower())
     
-    return f"{suit}{rank}.jpg"
+    return f"{suit}{rank}.png"
+
+def card_to_display(card):
+    """Converts a card name to display format with emoji (e.g., 'A♠️', '5♦️')."""
+    rank, suit = card.split(' of ')
+    suit_emoji = {'Spades': '♠️', 'Clubs': '♣️', 'Hearts': '♥️', 'Diamonds': '♦️'}
+    
+    return f"{rank}{suit_emoji[suit]}"
 
 @app.route('/')
 def index():
@@ -73,16 +80,22 @@ def index():
             session['game_over'] = True
             session['message'] = "Computer has a natural Blackjack! Computer wins!"
 
-    # Convert card names to image paths
-    player_images = [card_to_image(card) for card in session['player_hand']]
+    # Convert card names to image paths and display names
+    player_cards = [{'image': card_to_image(card), 'display': card_to_display(card)} 
+                    for card in session['player_hand']]
     
     # Only show the first card of the computer's hand initially
     if session['game_over']:
-        computer_images = [card_to_image(card) for card in session['computer_hand']]
+        computer_cards = [{'image': card_to_image(card), 'display': card_to_display(card)} 
+                         for card in session['computer_hand']]
     else:
-        computer_images = [card_to_image(session['computer_hand'][0]), "back.jpg"]
+        computer_cards = [
+            {'image': card_to_image(session['computer_hand'][0]), 
+             'display': card_to_display(session['computer_hand'][0])},
+            {'image': 'back.png', 'display': '?'}
+        ]
 
-    return render_template('index.html', player_images=player_images, computer_images=computer_images)
+    return render_template('index.html', player_cards=player_cards, computer_cards=computer_cards)
 
 @app.route('/hit', methods=['POST'])
 def hit():

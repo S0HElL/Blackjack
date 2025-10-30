@@ -1,178 +1,230 @@
 import random
-import os  # For clearing the screen
+import os
+import time
 
 def clear_screen():
-    """Clears the console screen (works for Windows & Mac/Linux)."""
+    """Clear the terminal screen."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
-class Player:
-    def __init__(self, name):
-        self.name = name
-        self.hand = []
+def initialize_deck():
+    """Create a standard 52-card deck."""
+    suits = ['♠', '♣', '♥', '♦']
+    ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+    return [f"{rank}{suit}" for suit in suits for rank in ranks]
 
-    def draw_hand(self, deck):
-        """Draws two random cards from the deck and removes them from the deck."""
-        for _ in range(2):
-            card = random.choice(deck)
-            self.hand.append(card)
-            deck.remove(card)
+def evaluate_hand(hand):
+    """Calculate the value of a hand."""
+    values = {'J': 10, 'Q': 10, 'K': 10}
+    hand_value = 0
+    aces = 0
 
-    def hit(self, deck):
-        """Draws one more card when the player chooses to hit and removes it from the deck."""
-        card = random.choice(deck)
-        self.hand.append(card)  # Append only one new card to the hand
-        deck.remove(card)  # Ensure the card is removed from the deck
+    for card in hand:
+        rank = card[:-1]  # Remove suit emoji
+        if rank == 'A':
+            aces += 1
+        elif rank in values:
+            hand_value += values[rank]
+        else:
+            hand_value += int(rank)
 
-    def show_hand(self):
-        """Displays the player's hand inside brackets."""
-        return f"[{', '.join(self.hand)}]"
+    # Handle aces
+    for _ in range(aces):
+        if hand_value + 11 <= 21:
+            hand_value += 11
+        else:
+            hand_value += 1
 
-    def evaluate_hand(self):
-        """Evaluates the hand based on Blackjack rules (Aces can be 1 or 11)."""
-        values = {'J': 10, 'Q': 10, 'K': 10}  # Face cards mapped
-        hand_value = 0
-        aces = 0
+    return hand_value
 
-        for card in self.hand:
-            rank = card.split()[0]  # Extract rank (e.g., 'A', '10', 'K')
+def display_hand(name, hand, hide_second=False):
+    """Display a player's hand."""
+    print(f"\n{name}'s Hand:")
+    if hide_second:
+        print(f"  {hand[0]}  [Hidden]")
+        print(f"  Score: ?")
+    else:
+        print(f"  {' '.join(hand)}")
+        print(f"  Score: {evaluate_hand(hand)}")
 
-            if rank == 'A':
-                aces += 1
-            elif rank in values:
-                hand_value += values[rank]
-            else:
-                hand_value += int(rank)  # Convert numbered cards
+def draw_card(deck):
+    """Draw a random card from the deck."""
+    card = random.choice(deck)
+    deck.remove(card)
+    return card
 
-        # Add Aces as 11, but if that causes a bust, treat them as 1
-        for _ in range(aces):
-            if hand_value + 11 <= 21:
-                hand_value += 11
-            else:
-                hand_value += 1
+def display_game_state(player_hand, dealer_hand, hide_dealer=True):
+    """Display the current game state."""
+    clear_screen()
+    print("=" * 50)
+    print("                   BLACKJACK")
+    print("=" * 50)
+    
+    display_hand("Dealer", dealer_hand, hide_dealer)
+    display_hand("Player", player_hand)
+    print("\n" + "-" * 50)
 
-        return hand_value
+def player_turn(deck, player_hand, dealer_hand):
+    """Handle the player's turn."""
+    while True:
+        display_game_state(player_hand, dealer_hand, hide_dealer=True)
+        
+        player_score = evaluate_hand(player_hand)
+        
+        # Check for bust
+        if player_score > 21:
+            print("\n💥 BUST! You went over 21!")
+            time.sleep(2)
+            return False
+        
+        # Check for 21
+        if player_score == 21:
+            print("\n🎯 You got 21!")
+            time.sleep(2)
+            return True
+        
+        # Get player input
+        print("\nChoose an action:")
+        print("  [H] Hit - Draw another card")
+        print("  [S] Stand - Keep your current hand")
+        
+        choice = input("\nYour choice: ").strip().upper()
+        
+        if choice == 'H':
+            player_hand.append(draw_card(deck))
+        elif choice == 'S':
+            return True
+        else:
+            print("\n❌ Invalid choice! Please enter H or S.")
+            time.sleep(1.5)
 
+def dealer_turn(deck, dealer_hand):
+    """Handle the dealer's turn."""
+    while evaluate_hand(dealer_hand) < 17:
+        print(f"\nDealer draws a card...")
+        time.sleep(1.5)
+        dealer_hand.append(draw_card(deck))
+        dealer_score = evaluate_hand(dealer_hand)
+        print(f"Dealer's new card: {dealer_hand[-1]}")
+        print(f"Dealer's score: {dealer_score}")
+        time.sleep(1.5)
+        
+        if dealer_score > 21:
+            print("\n💥 Dealer BUSTS!")
+            time.sleep(2)
+            return False
+    
+    return True
 
-def play_blackjack():
+def determine_winner(player_hand, dealer_hand):
+    """Determine the winner and display results."""
+    player_score = evaluate_hand(player_hand)
+    dealer_score = evaluate_hand(dealer_hand)
+    
+    display_game_state(player_hand, dealer_hand, hide_dealer=False)
+    
+    print("\n" + "=" * 50)
+    print("                 FINAL RESULTS")
+    print("=" * 50)
+    print(f"  Your score:   {player_score}")
+    print(f"  Dealer score: {dealer_score}")
+    print("-" * 50)
+    
+    if dealer_score > 21:
+        print("\n🎉 YOU WIN! Dealer busted!")
+    elif player_score > dealer_score:
+        print("\n🎉 YOU WIN! Higher score!")
+    elif player_score < dealer_score:
+        print("\n😔 DEALER WINS! Dealer has higher score!")
+    else:
+        print("\n🤝 IT'S A TIE! Push!")
+    
+    print("=" * 50)
+
+def play_game():
+    """Main game loop."""
+    # Initialize deck and hands
+    deck = initialize_deck()
+    player_hand = []
+    dealer_hand = []
+    
+    # Deal initial cards
+    for _ in range(2):
+        player_hand.append(draw_card(deck))
+        dealer_hand.append(draw_card(deck))
+    
+    # Check for natural blackjack
+    player_score = evaluate_hand(player_hand)
+    dealer_score = evaluate_hand(dealer_hand)
+    
+    display_game_state(player_hand, dealer_hand, hide_dealer=True)
+    
+    if player_score == 21 and dealer_score == 21:
+        display_game_state(player_hand, dealer_hand, hide_dealer=False)
+        print("\n🤝 Both have BLACKJACK! It's a tie!")
+        time.sleep(3)
+        return
+    elif player_score == 21:
+        display_game_state(player_hand, dealer_hand, hide_dealer=False)
+        print("\n🎉 BLACKJACK! You win!")
+        time.sleep(3)
+        return
+    elif dealer_score == 21:
+        display_game_state(player_hand, dealer_hand, hide_dealer=False)
+        print("\n😔 Dealer has BLACKJACK! Dealer wins!")
+        time.sleep(3)
+        return
+    
+    # Player's turn
+    if not player_turn(deck, player_hand, dealer_hand):
+        display_game_state(player_hand, dealer_hand, hide_dealer=False)
+        print("\n😔 DEALER WINS!")
+        time.sleep(3)
+        return
+    
+    # Dealer's turn
+    display_game_state(player_hand, dealer_hand, hide_dealer=False)
+    print("\nDealer's turn...")
+    time.sleep(2)
+    
+    dealer_turn(deck, dealer_hand)
+    
+    # Determine winner
+    determine_winner(player_hand, dealer_hand)
+    time.sleep(3)
+
+def main():
+    """Main program entry point."""
     while True:
         clear_screen()
-
-        # Initialize deck
-        cardsuits = ['Spades', 'Clubs', 'Hearts', 'Diamonds']
-        cardtypes = ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K']
-        deck = [f"{card} of {suit}" for suit in cardsuits for card in cardtypes]
-
-        # Create player and computer
-        player = Player("Player")
-        computer = Player("Computer")
-
-        # Assign hands
-        player.draw_hand(deck)
-        computer.draw_hand(deck)
-
-        # Evaluate initial hands
-        player_score = player.evaluate_hand()
-        computer_score = computer.evaluate_hand()
-
-        # Show initial hands
-        print(f"{player.name}'s Hand: {player.show_hand()}")
-        print(f"Score: {player_score}\n")
-        print(f"Computer's First Card: [{computer.hand[0]}] (Computer's score hidden)\n")
-
-        # Check if player got natural blackjack (21) at the start
-        if player_score == 21:
-            print(f"Player has a natural Blackjack! Player wins!")
-            print(f"Final Hand: {player.show_hand()}")
-            print(f"Score: {player_score}")
-            print(f"Computer's Hand: {computer.show_hand()}")
-            print(f"Score: {computer_score}")
-            continue  # Go to next round
-
-        # Check if computer got natural blackjack (21) at the start
-        elif computer_score == 21:
-            print(f"Computer has a natural Blackjack! Computer wins!")
-            print(f"Player's Hand: {player.show_hand()}")
-            print(f"Score: {player_score}")
-            print(f"Final Hand: {computer.show_hand()}")
-            print(f"Score: {computer_score}")
-            continue  # Go to next round
-
-        # Player's turn (Hit or Stand)
-        while player_score < 21:  # Stop the loop if score reaches 21
-            choice = input("Enter 1 to Hit or 2 to Stand: ")
-
-            if choice == '1':  # Hit
-                player.hit(deck)  # Add one new card to the hand
-                player_score = player.evaluate_hand()  # Re-evaluate the score
-                clear_screen()
-                print(f"{player.name}'s Hand: {player.show_hand()}")
-                print(f"Score: {player_score}\n")
-
-                if player_score > 21:  # Bust check
-                    print("You busted! Computer wins.")
-                    print(f"Final Hand: {player.show_hand()}")
-                    break  # End the game immediately if bust
-
-                elif player_score == 21:  # Blackjack check
-                    print("Player got 21! Player wins!")
-                    break  # End the game if player hits 21
-
-            elif choice == '2':  # Stand
-                break
-
-        if player_score > 21:
-            # Show final hands and scores (one-time display)
-            print("\nFinal Hands:")
-            print(f"{player.name}'s Hand: {player.show_hand()}")
-            print(f"Score: {player_score}")
-            print(f"Computer's Hand: {computer.show_hand()}")
-            print(f"Score: {computer_score}\n")
-
-            # Ask to play again
-            again = input("\nPlay again? (y/n): ").strip().lower()
-            if again == 'n':
-                print("Thanks for playing! Goodbye!")
-                break
-            else:
-                continue  # Go to next round
-
-        # Computer's turn (Automated: hits if score < 17)
-        if player_score <= 21:
-            print(f"Computer's Hand: {computer.show_hand()}")
-            print(f"Score: {computer_score}\n")
-
-            while computer_score < 17:
-                computer.hit(deck)  # Draw one card for the computer
-                computer_score = computer.evaluate_hand()  # Re-evaluate the score
-                clear_screen()
-                print(f"Computer hits: {computer.show_hand()}")
-                print(f"Score: {computer_score}\n")
-
-                if computer_score > 21:
-                    print("Computer busted! Player wins!")
-                    break  # End the game immediately if computer busts
-
-        # Determine winner
-        if player_score <= 21 and computer_score <= 21:
-            if player_score > computer_score:
-                print("Player wins!")
-            elif player_score < computer_score:
-                print("Computer wins!")
-            else:
-                print("It's a tie!")
-
-        # Show final hands and scores (one-time display)
-        print("\nFinal Hands:")
-        print(f"{player.name}'s Hand: {player.show_hand()}")
-        print(f"Score: {player_score}")
-        print(f"Computer's Hand: {computer.show_hand()}")
-        print(f"Score: {computer_score}\n")
-
+        print("=" * 50)
+        print("                   BLACKJACK")
+        print("=" * 50)
+        print("\nWelcome to Blackjack!")
+        print("\nRules:")
+        print("  • Get as close to 21 as possible without going over")
+        print("  • Face cards (J, Q, K) are worth 10 points")
+        print("  • Aces can be worth 1 or 11 points")
+        print("  • Dealer must draw until reaching at least 17")
+        print("\n" + "=" * 50)
+        
+        input("\nPress ENTER to start the game...")
+        
+        play_game()
+        
         # Ask to play again
-        again = input("\nPlay again? (y/n): ").strip().lower()
-        if again == 'n':
-            print("Thanks for playing! Goodbye!")
+        while True:
+            play_again = input("\nPlay again? (Y/N): ").strip().upper()
+            if play_again in ['Y', 'N']:
+                break
+            print("Please enter Y or N.")
+        
+        if play_again == 'N':
+            clear_screen()
+            print("\n" + "=" * 50)
+            print("          Thanks for playing Blackjack!")
+            print("=" * 50 + "\n")
             break
 
-# Start the game
-play_blackjack()
+if __name__ == "__main__":
+    main()
+    
